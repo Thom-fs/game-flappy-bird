@@ -1,18 +1,18 @@
 import java.awt.Image;
 
-public class Pipe {
-    int x;
-    int y;
-    int width;
-    int height;
-    Image img;
-    boolean passed = false;
+public class Pipe extends GameObject {
+    private boolean passed;
 
-    public Pipe(int startX, int startY, int width, int height, Image img) {
-        this.x = startX;
-        this.y = startY;
-        this.width = width;
-        this.height = height;
-        this.img = img;
+    public Pipe(int x, int y, int width, int height, Image img) {
+        super(x, y, width, height, img);
+        this.passed = false;
+    }
+
+    public boolean isPassed() {
+        return passed;
+    }
+
+    public void setPassed(boolean passed) {
+        this.passed = passed;
     }
 }

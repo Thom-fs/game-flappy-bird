@@ -10,38 +10,38 @@ public class FlappyBird extends JPanel implements ActionListener, KeyListener {
 
 
     // Images
-    Image backgroundImg;
-    Image birdImg;
-    Image topPipeImg;
-    Image bottomPipeImg;
+    private final Image backgroundImg;
+    private final Image birdImg;
+    private final Image topPipeImg;
+    private final Image bottomPipeImg;
 
     // Bird
-    int birdX = BOARD_WIDTH/8;
-    int birdY = BOARD_HEIGHT/2;
-    int birdWidth = 34;
-    int birdHeight = 24;
+    private final int birdX = BOARD_WIDTH/8;
+    private final int birdY = BOARD_HEIGHT/2;
+    private final int birdWidth = 34;
+    private final int birdHeight = 24;
 
     // Pipes 
-    int pipeX = BOARD_WIDTH;
-    int pipeY = 0;
-    int pipeWidth = 64; // scaled by 1/6
-    int pipeHeight = 512;
+    private final int pipeX = BOARD_WIDTH;
+    private final int pipeY = 0;
+    private final int pipeWidth = 64; // scaled by 1/6
+    private final int pipeHeight = 512;
 
     // game logic
-    Bird bird;
-    int velocityX = -4; // move pipes to the left speed (simulates bird moving right)
-    int velocityY = 0; // move bird up/down speed
-    int gravity = 1;
+    private final Bird bird;
+    private final int velocityX = -4; // move pipes to the left speed (simulates bird moving right)
+    private int velocityY = 0; // move bird up/down speed
+    private final int gravity = 1;
      
-    ArrayList<Pipe> pipes;
-    Random random = new Random();
+    private final ArrayList<Pipe> pipes;
+    private final Random random = new Random();
     
-    Timer gameLoop;
-    Timer placePipesTimer;
-    Boolean gameOver = false;
-    boolean gameStarted = false;
-    double score = 0; 
-
+    private final Timer gameLoop;
+    private final Timer placePipesTimer;
+    private Boolean gameOver = false;
+    private boolean gameStarted = false;
+    private double score = 0; 
+    
 
     FlappyBird() {
         setPreferredSize(new Dimension(BOARD_WIDTH, BOARD_HEIGHT));
@@ -87,7 +87,7 @@ public class FlappyBird extends JPanel implements ActionListener, KeyListener {
         Pipe topPipe = new Pipe(pipeX, randomPipeY, pipeWidth, pipeHeight, topPipeImg);
         pipes.add(topPipe);
 
-        Pipe bottomPipe = new Pipe(pipeX, topPipe.y + pipeHeight + openingSpace, pipeWidth, pipeHeight, bottomPipeImg);
+        Pipe bottomPipe = new Pipe(pipeX, topPipe.getY() + pipeHeight + openingSpace, pipeWidth, pipeHeight, bottomPipeImg);
         pipes.add(bottomPipe);
 
     }
@@ -103,11 +103,11 @@ public class FlappyBird extends JPanel implements ActionListener, KeyListener {
         g.drawImage(backgroundImg, 0, 0, BOARD_WIDTH, BOARD_HEIGHT, null);
 
         // bird
-        g.drawImage(bird.img, bird.x, bird.y, bird.width, bird.height, null);
+        g.drawImage(bird.getImg(), bird.getX(), bird.getY(), bird.getWidth(), bird.getHeight(), null);
 
         // pipes
         for (Pipe pipe : pipes) {
-            g.drawImage(pipe.img, pipe.x, pipe.y, pipe.width, pipe.height, null);
+            g.drawImage(pipe.getImg(), pipe.getX(), pipe.getY(), pipe.getWidth(), pipe.getHeight(), null);
         }
 
         // score
@@ -146,22 +146,22 @@ public class FlappyBird extends JPanel implements ActionListener, KeyListener {
         if (!gameStarted) return; 
 
         velocityY += gravity;
-        bird.y += velocityY;
-        bird.y = Math.max(bird.y, 0); // Prevent bird from moving past the top of the screen
+        bird.setY(bird.getY() + velocityY);
+        bird.setY(Math.max(bird.getY(), 0)); // Prevent bird from moving past the top of the screen
     }
 
     private void movePipes() {
         for (int i = pipes.size() - 1; i >= 0; i--) {
             Pipe pipe = pipes.get(i);
-            pipe.x += velocityX;
+            pipe.setX(pipe.getX() + velocityX);
     
             // delete the pipe out of the display
-            if (pipe.x + pipe.width < 0) {
+            if (pipe.getX() + pipe.getWidth() < 0) {
                 pipes.remove(i);
             }
             // if bird passed the right side of the pipe
-            if (!pipe.passed && bird.x > pipe.x + pipe.width) {
-                pipe.passed = true;
+            if (!pipe.isPassed() && bird.getX() > pipe.getX() + pipe.getWidth()) {
+                pipe.setPassed(true);
                 score += 0.5; // 0.5 because there are 2 pipes! so 0.5*2 = 1, 1 for each set of pipes
             }
         }
@@ -177,16 +177,16 @@ public class FlappyBird extends JPanel implements ActionListener, KeyListener {
     }
 
     private void checkGameOver() {
-        if (bird.y > BOARD_HEIGHT) {
+        if (bird.getY() > BOARD_HEIGHT) {
             gameOver = true;
         }
     }
 
     public boolean collision(Bird a, Pipe b) {
-        return a.x < b.x + b.width &&   //a's top left corner doesn't reach b's top right corner
-        a.x + a.width > b.x &&   //a's top right corner passes b's top left corner
-        a.y < b.y + b.height &&  //a's top left corner doesn't reach b's bottom left corner
-        a.y + a.height > b.y;    //a's bottom left corner passes b's top left corner
+        return a.getX() < b.getX() + b.getWidth() &&   //a's top left corner doesn't reach b's top right corner
+               a.getX() + a.getWidth() > b.getX() &&   //a's top right corner passes b's top left corner
+               a.getY() < b.getY() + b.getHeight() &&  //a's top left corner doesn't reach b's bottom left corner
+               a.getY() + a.getHeight() > b.getY();    //a's bottom left corner passes b's top left corner
     }
 
 
@@ -194,7 +194,11 @@ public class FlappyBird extends JPanel implements ActionListener, KeyListener {
     public void actionPerformed(ActionEvent e) {
         // call paintComponenent
         move(); 
+
+        // request Swing (JPanel) to redraw the game panel with the updated positions
+        // and the current state of the game objects
         repaint();
+
         if (gameOver) {
             placePipesTimer.stop();
             gameLoop.stop(); 
@@ -229,7 +233,7 @@ public class FlappyBird extends JPanel implements ActionListener, KeyListener {
 
     private void resetGame() {
         // restart game by resetting conditions
-        bird.y = birdY;
+        bird.setY(birdY);
         velocityY = 0;
         pipes.clear();
         gameOver = false;
